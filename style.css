@@ -304,14 +304,14 @@ button, input, select { font: inherit; color: inherit; }
   max-height: calc(100dvh - 16px);
   overflow: hidden;
 }
-.sheet[open] { display: flex; flex-direction: column; }
+.sheet[open] { display: block; }
 .sheet::backdrop { background: rgba(34, 48, 60, .45); }
 .sheet[open] { animation: up .22s ease-out; }
 @keyframes up { from { transform: translateY(40px); opacity: 0; } }
 .sheet form {
   display: grid; gap: 10px;
-  flex: 1; min-height: 0;
-  overflow-y: auto; overscroll-behavior: contain;
+  max-height: calc(var(--vvh, 100dvh) - 16px); /* без flex: иначе Safari сплющивает окно */
+  overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
   padding: 18px 16px 0;
 }
 .sheet .field input, .sheet .field select { min-height: 48px; }
