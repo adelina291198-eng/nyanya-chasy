@@ -1,6 +1,6 @@
 // Service worker «Часиков»: хранит файлы приложения на телефоне, чтобы оно открывалось без интернета.
 // ⚠️ ПРИ КАЖДОЙ ВЫКЛАДКЕ ПОВЫШАЙ НОМЕР ВЕРСИИ (v1 → v2 → v3 …), иначе телефон покажет старую версию.
-const VERSION = "v3";
+const VERSION = "v4";
 const CACHE = "chasiki-" + VERSION;
 const FILES = [
   "./",
@@ -13,9 +13,14 @@ const FILES = [
   "./icon-512.png"
 ];
 
-// установка: кладём все файлы в хранилище
+// установка: кладём все файлы в хранилище.
+// cache: "reload" — берём свежие файлы с сайта, а не старые копии из памяти браузера (GitHub разрешает хранить их 10 минут)
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
+  e.waitUntil(
+    caches.open(CACHE)
+      .then((c) => c.addAll(FILES.map((f) => new Request(f, { cache: "reload" }))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 // новая версия: стираем старые хранилища
