@@ -217,7 +217,16 @@
   <script>
     // включаем работу без интернета (sw.js)
     if ("serviceWorker" in navigator) {
+      // пришла новая версия — один раз перезагружаем страницу, чтобы сразу её показать
+      var hadOld = !!navigator.serviceWorker.controller, reloaded = false;
+      navigator.serviceWorker.addEventListener("controllerchange", function () {
+        if (hadOld && !reloaded) { reloaded = true; location.reload(); }
+      });
       window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js"); });
+      // вернулись в приложение из фона — проверить, нет ли новой версии
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible") navigator.serviceWorker.getRegistration().then(function (r) { if (r) r.update(); });
+      });
     }
   </script>
 </body>
