@@ -665,7 +665,7 @@
     $("tab-calendar").setAttribute("aria-current", view === "calendar" ? "page" : "false");
     $("btn-settings").hidden = settings;
     $("btn-back").hidden = !settings;
-    $("page-title").textContent = settings ? "Семьи и ставки" : view === "calendar" ? "Календарь" : "Часики няни";
+    $("page-title").textContent = settings ? "Семьи и ставки" : view === "calendar" ? "Календарь" : "Часики няни ✨";
     document.body.classList.toggle("no-bars", settings);
     window.scrollTo(0, 0);
   }
