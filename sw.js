@@ -1,6 +1,6 @@
 // Service worker «Часиков»: хранит файлы приложения на телефоне, чтобы оно открывалось без интернета.
 // ⚠️ ПРИ КАЖДОЙ ВЫКЛАДКЕ ПОВЫШАЙ НОМЕР ВЕРСИИ (v1 → v2 → v3 …), иначе телефон покажет старую версию.
-const VERSION = "v4";
+const VERSION = "v5";
 const CACHE = "chasiki-" + VERSION;
 const FILES = [
   "./",
@@ -51,6 +51,17 @@ self.addEventListener("fetch", (e) => {
   }
 
   if (url.origin !== location.origin) return;
+
+  // погода (data.json): сначала свежая из сети, без интернета — последняя сохранённая
+  if (url.pathname.endsWith("/data.json")) {
+    e.respondWith(
+      fetch(req).then((res) => {
+        if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put("./data.json", copy)); }
+        return res;
+      }).catch(() => caches.match("./data.json").then((hit) => hit || Response.error()))
+    );
+    return;
+  }
 
   // открытие страницы: без интернета — из хранилища
   if (req.mode === "navigate") {

@@ -58,3 +58,8 @@
 ## Ссылки
 - Сайт: https://adelina291198-eng.github.io/nyanya-chasy/
 - Репозиторий: https://github.com/adelina291198-eng/nyanya-chasy
+
+## Погода и «Прогулка» (обновляется сама)
+- `fetch.py` берёт прогноз на 3 дня для Екатеринбурга с open-meteo.com (без ключей) → `data.json`.
+- `.github/workflows/update.yml` запускает его 3 раза в день: 06:17, 12:17, 18:17 по Екб (01:17, 07:17, 13:17 UTC). Ручной запуск: Actions → «Обновить погоду» → Run workflow.
+- Если источник не ответил — `data.json` остаётся прежним. В `data.json` только погода, никаких личных данных.

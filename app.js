@@ -745,7 +745,65 @@
     });
   });
 
+  // ---------- Карточка «Прогулка»: погода из data.json (обновляется сама 3 раза в день) ----------
+  var WALK_DAYS = ["Сегодня", "Завтра", "Послезавтра"];
+  function renderWalk(w) {
+    var box = $("walk");
+    box.textContent = "";
+    var today = todayStr();
+    var days = (w.days || []).filter(function (d) { return d.date >= today; });
+    if (!days.length) {
+      box.appendChild(el("p", "walk-msg", "Прогноз устарел — ждём свежий. Обновлено: " + (w.updated_text || "?")));
+      return;
+    }
+    var d = days[0];
+    box.className = "walk walk-" + d.walk;
+    var head = el("div", "walk-head");
+    head.appendChild(el("span", "walk-ico", d.icon));
+    var main = el("div", "walk-main");
+    main.appendChild(el("p", "walk-title", (d.date === today ? "" : dayLabel(d.date) + ": ") + d.walk_title));
+    main.appendChild(el("p", "walk-why", d.walk_why));
+    head.appendChild(main);
+    head.appendChild(el("span", "walk-temp", (d.t_max > 0 ? "+" : "") + d.t_max + "°"));
+    box.appendChild(head);
+
+    var facts = el("ul", "walk-facts");
+    [
+      d.text + ", от " + d.t_min + "° до " + d.t_max + "° (ощущается " + d.feels_min + "°…" + d.feels_max + "°)",
+      "👕 " + d.clothes,
+      "🌅 светло с " + d.sunrise + " до " + d.sunset,
+      "💨 ветер до " + d.wind + " м/с" + (d.rain_chance ? " · осадки " + d.rain_chance + "%" : ""),
+      d.air_text ? "🍃 воздух: " + d.air_text : null
+    ].forEach(function (t) { if (t) facts.appendChild(el("li", null, t)); });
+    box.appendChild(facts);
+
+    if (days.length > 1) {
+      var next = el("div", "walk-next");
+      days.slice(1, 3).forEach(function (n) {
+        var i = Math.round((parseDate(n.date) - parseDate(today)) / 864e5);
+        var c = el("div", "walk-day walk-" + n.walk);
+        c.appendChild(el("b", null, (WALK_DAYS[i] || dayLabel(n.date)) + " " + n.icon));
+        c.appendChild(el("span", null, n.t_min + "°…" + n.t_max + "° · " + n.walk_title));
+        next.appendChild(c);
+      });
+      box.appendChild(next);
+    }
+    box.appendChild(el("p", "walk-upd", "Обновлено " + w.updated_text + " · " + w.city + " · " + w.source));
+  }
+  function loadWalk() {
+    fetch("data.json?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(renderWalk)
+      .catch(function () {
+        var box = $("walk");
+        box.className = "walk";
+        box.textContent = "";
+        box.appendChild(el("p", "walk-msg", "🌤️ Погоду сейчас загрузить не получилось. Проверьте интернет — остальное приложение работает как обычно."));
+      });
+  }
+
   lastMain = location.hash === "#calendar" ? "calendar" : "";
   showView();
   render();
+  loadWalk();
 })();
