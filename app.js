@@ -275,6 +275,18 @@
     return data.meetings.filter(function (m) { return m.date === date; })
       .sort(function (a, b) { return a.from.localeCompare(b.from); });
   }
+  // визиты, внесённые сразу в историю (не из встречи) — их тоже видно в календаре
+  function visitsOnlyOn(date) {
+    return data.visits.filter(function (v) {
+      return v.date === date && !data.meetings.some(function (m) { return m.visitId === v.id; });
+    });
+  }
+  // всё за день: встречи и такие визиты, по времени
+  function dayItems(date) {
+    var items = meetingsOn(date).map(function (m) { return { kind: "m", x: m }; })
+      .concat(visitsOnlyOn(date).map(function (v) { return { kind: "v", x: v }; }));
+    return items.sort(function (a, b) { return a.x.from.localeCompare(b.x.from); });
+  }
   function meetingSum(m) {
     var f = familyById(m.familyId);
     return f ? Math.round(hoursOf(m.from, m.to) * f.rate) : 0;
@@ -300,11 +312,11 @@
       if (ds === today) b.classList.add("is-today");
       if (ds === selDate) { b.classList.add("is-selected"); b.setAttribute("aria-current", "date"); }
       b.appendChild(el("span", null, String(d.getDate())));
-      var ms = meetingsOn(ds);
+      var ms = dayItems(ds);
       var dots = el("span", "dots");
-      ms.slice(0, 3).forEach(function (m) { dots.appendChild(el("span", "dot" + (isDone(m) ? " done" : ""))); });
+      ms.slice(0, 3).forEach(function (it) { dots.appendChild(el("span", "dot" + (it.kind === "v" || isDone(it.x) ? " done" : ""))); });
       b.appendChild(dots);
-      b.setAttribute("aria-label", dayLabel(ds) + (ms.length ? ", " + plural(ms.length, "встреча", "встречи", "встреч") : ""));
+      b.setAttribute("aria-label", dayLabel(ds) + (ms.length ? ", " + plural(ms.length, "запись", "записи", "записей") : ""));
       b.addEventListener("click", (function (date) {
         return function () { selDate = date; calMonth = date.slice(0, 7); renderCalendar(); };
       })(ds));
@@ -315,24 +327,27 @@
 
   function renderDay() {
     var list = $("meetings");
-    var ms = meetingsOn(selDate);
+    var all = dayItems(selDate);
+    var ms = all.filter(function (it) { return it.kind === "m"; }).map(function (it) { return it.x; });
     list.innerHTML = "";
     $("day-title").textContent = dayLabel(selDate);
     var short = parseDate(selDate).toLocaleDateString("ru-RU", { weekday: "short", day: "numeric", month: "long" });
     $("cal-day-short").textContent = short.replace(/^./, function (c) { return c.toUpperCase(); });
-    var total = ms.reduce(function (s, m) { return s + meetingSum(m); }, 0);
-    $("cal-day-short").textContent += ms.length ? " · " + plural(ms.length, "встреча", "встречи", "встреч") : "";
-    $("cal-day-sum").textContent = ms.length ? rub(total) : "Нет встреч";
+    var total = all.reduce(function (s, it) { return s + (it.kind === "v" ? sumOf(it.x) : meetingSum(it.x)); }, 0);
+    $("cal-day-short").textContent += all.length ? " · " + plural(all.length, "запись", "записи", "записей") : "";
+    $("cal-day-sum").textContent = all.length ? rub(total) : "Нет встреч";
 
     if (data.families.length === 0) {
       showEmptyIn("day-empty", "Начните с семьи", "Добавьте семью и её ставку — потом сможете планировать встречи.", "+ Семья", function () { openFamily(null); });
-    } else if (ms.length === 0) {
+    } else if (all.length === 0) {
       showEmptyIn("day-empty", "На этот день встреч нет", "Нажмите «+ Встреча» — дата подставится сама.", "+ Встреча", function () { openMeeting(null); });
     } else {
       $("day-empty").hidden = true;
     }
 
-    ms.forEach(function (m) {
+    all.forEach(function (it) {
+      if (it.kind === "v") { list.appendChild(visitCard(it.x)); return; }
+      var m = it.x;
       var f = familyById(m.familyId);
       var done = isDone(m);
       var li = el("li", "meeting" + (done ? " is-done" : ""));
@@ -362,6 +377,32 @@
       li.appendChild(act);
       list.appendChild(li);
     });
+  }
+
+  // карточка визита в календаре (зелёная — визит уже был)
+  function visitCard(v) {
+    var f = familyById(v.familyId);
+    var li = el("li", "meeting is-done");
+    li.dataset.id = v.id;
+    var t = el("div", "meeting-time", v.from);
+    t.appendChild(el("small", null, "до " + v.to));
+    li.appendChild(t);
+    li.appendChild(el("div", "meeting-family", f ? f.name : "Семья удалена"));
+    var info = hrs(hoursOf(v.from, v.to)) + " · " + rub(sumOf(v)) + " · " + (v.paid ? "оплачено ✓" : "не оплачено") + (v.note ? " · " + v.note : "");
+    li.appendChild(el("div", "meeting-info", info));
+    var act = el("div", "visit-actions");
+    var tag = el("button", "done-btn", "Визит ✓");
+    tag.type = "button";
+    tag.addEventListener("click", function () { toast("Этот визит уже в истории"); });
+    var edit = el("button", "small-btn", "Изменить");
+    edit.type = "button";
+    edit.addEventListener("click", function () { openVisit(v.id); });
+    var del = el("button", "small-btn danger", "Удалить");
+    del.type = "button";
+    del.addEventListener("click", function () { deleteVisit(v.id); });
+    act.appendChild(tag); act.appendChild(edit); act.appendChild(del);
+    li.appendChild(act);
+    return li;
   }
 
   function showEmptyIn(id, title, text, btnLabel, onClick) {
