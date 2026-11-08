@@ -683,6 +683,27 @@
     e.target.value = "";
   });
 
+  // iPhone: клавиатура закрывает низ экрана. Считаем её высоту и поднимаем окно над ней.
+  function fitKeyboard() {
+    var vv = window.visualViewport; if (!vv) return;
+    var kb = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+    document.documentElement.style.setProperty("--kb", kb + "px");
+    document.documentElement.style.setProperty("--vvh", vv.height + "px");
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", fitKeyboard);
+    window.visualViewport.addEventListener("scroll", fitKeyboard);
+    fitKeyboard();
+  }
+  // поле, в котором печатаем, всегда видно внутри окна
+  document.querySelectorAll("dialog form").forEach(function (f) {
+    f.addEventListener("focusin", function (e) {
+      var t = e.target;
+      if (!/INPUT|SELECT|TEXTAREA/.test(t.tagName)) return;
+      setTimeout(function () { fitKeyboard(); t.scrollIntoView({ block: "center" }); }, 300);
+    });
+  });
+
   lastMain = location.hash === "#calendar" ? "calendar" : "";
   showView();
   render();

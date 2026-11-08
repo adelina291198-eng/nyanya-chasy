@@ -339,6 +339,15 @@ button, input, select { font: inherit; color: inherit; }
 @media (min-width: 700px) {
   .sheet { margin: auto; border-radius: var(--radius-big); }
 }
+/* Телефон: окно стоит над клавиатурой (на iPhone клавиатура не сжимает страницу) */
+@media (max-width: 699px) {
+  .sheet {
+    position: fixed;
+    top: auto; bottom: var(--kb, 0px);
+    margin: 0 auto;
+    max-height: calc(var(--vvh, 100dvh) - 12px);
+  }
+}
 
 /* Всплывашка */
 .toast {
