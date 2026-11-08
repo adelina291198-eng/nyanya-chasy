@@ -1,4 +1,4 @@
-"""Собирает погоду и подсказку «можно ли гулять» для Екатеринбурга и кладёт в data.json.
+"""Собирает погоду и подсказку «можно ли гулять» для Уфы и кладёт в data.json.
 
 Источник — open-meteo.com: бесплатно, без ключей, без личных данных.
 Если источник не ответил — старый data.json остаётся как был, приложение не ломается.
@@ -10,9 +10,9 @@ import sys
 import urllib.request
 from datetime import datetime, timedelta, timezone
 
-CITY = "Екатеринбург"
-LAT, LON = 56.84, 60.61
-TZ = "Asia/Yekaterinburg"
+CITY = "Уфа"
+LAT, LON = 54.74, 55.97
+TZ = "Asia/Yekaterinburg"  # Уфа живёт по тому же времени (UTC+5)
 OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data.json")
 
 WEATHER_URL = (
@@ -134,7 +134,7 @@ def build():
     return {
         "city": CITY,
         "updated": now.isoformat(timespec="seconds"),
-        "updated_text": now.strftime("%d.%m.%Y %H:%M") + " (Екб)",
+        "updated_text": now.strftime("%d.%m.%Y %H:%M") + " (по Уфе)",
         "source": "open-meteo.com",
         "days": days,
     }
