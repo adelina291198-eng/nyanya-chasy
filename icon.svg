@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- фон на весь квадрат: телефон сам обрежет углы -->
+  <rect width="512" height="512" fill="#EEF1EC"/>
+  <!-- циферблат: всё важное внутри центрального круга, чтобы Android не обрезал -->
+  <circle cx="256" cy="256" r="170" fill="#F4C542" stroke="#22303C" stroke-width="22"/>
+  <g stroke="#22303C" stroke-width="14" stroke-linecap="round">
+    <line x1="256" y1="112" x2="256" y2="134"/>
+    <line x1="400" y1="256" x2="378" y2="256"/>
+    <line x1="256" y1="400" x2="256" y2="378"/>
+    <line x1="112" y1="256" x2="134" y2="256"/>
+  </g>
+  <!-- стрелки -->
+  <path d="M256 160v100l64 40" fill="none" stroke="#22303C" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="256" cy="260" r="16" fill="#22303C"/>
+  <!-- монетка с рублём -->
+  <circle cx="338" cy="338" r="62" fill="#2F7D5B" stroke="#EEF1EC" stroke-width="12"/>
+  <path d="M322 372v-66h22a18 18 0 0 1 0 36h-32M310 356h40" fill="none" stroke="#FFFFFF" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
